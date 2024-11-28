@@ -1,0 +1,4 @@
+# не отслеживать
+node_modules/
+
+dist/
