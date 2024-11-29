@@ -16,5 +16,9 @@
     "gulp-sass": "^6.0.0",
     "sass": "^1.81.0"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "browser-sync": "^3.0.3",
+    "gulp-htmlmin": "^5.0.1"
+  }
 }
