@@ -39,10 +39,34 @@ export const html = () => {
     .pipe(browserSync.stream()); // Обновляем браузер
 };
 
+// Задача для копирования изображений
+export const images = () => {
+  return gulp.src('src/img/**/*').pipe(gulp.dest('dist/img'));
+};
+
+// Задача для копирования иконок
+export const icons = () => {
+  return gulp.src('src/icons/**/*').pipe(gulp.dest('dist/icons'));
+};
+
+// Задача для копирования шрифтов
+export const fonts = () => {
+  return gulp.src('src/fonts/**/*').pipe(gulp.dest('dist/fonts'));
+};
+
+// Задача для копирования аудио
+export const audio = () => {
+  return gulp.src('src/audio/**/*').pipe(gulp.dest('dist/audio'));
+};
+
 // Задача для слежения за файлами и выполнения соответствующих задач
 export const watchFiles = () => {
   watch('src/sass/**/*.+(sass|scss)', styles); // Наблюдение за стилями
   watch('src/html/**/*.html', html); // Наблюдение за index.html и включаемыми файлами
+  watch('src/img/**/*', images); // Наблюдение за изображениями
+  watch('src/icons/**/*', icons); // Наблюдение за иконками
+  watch('src/fonts/**/*', fonts); // Наблюдение за шрифтами
+  watch('src/audio/**/*', audio); // Наблюдение за аудио
   watch('dist/**/*').on('change', browserSync.reload); // Перезагрузка браузера при изменениях в dist
 };
 
@@ -56,4 +80,7 @@ export const server = () => {
 };
 
 // Задача по умолчанию: запускаем все задачи одной командой
-export default series(parallel(styles, html), parallel(server, watchFiles));
+export default series(
+  parallel(styles, html, images, icons, fonts, audio),
+  parallel(server, watchFiles)
+);
