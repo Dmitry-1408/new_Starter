@@ -5,6 +5,7 @@ import cleanCSS from 'gulp-clean-css';
 import autoprefixer from 'gulp-autoprefixer';
 import rename from 'gulp-rename';
 import htmlmin from 'gulp-htmlmin';
+import fileInclude from 'gulp-file-include'; // Для @@include
 import browserSync from 'browser-sync'; // Для автообновления браузера
 import { series, parallel, watch } from 'gulp'; // Для создания комплексных задач
 
@@ -23,19 +24,25 @@ export const styles = () => {
     .pipe(browserSync.stream()); // Обновляем браузер
 };
 
-// Задача для минификации HTML
+// Задача для обработки только index.html с поддержкой @@include и минификацией
 export const html = () => {
   return gulp
-    .src('src/html/**/*.html') // Путь к вашим HTML-файлам
+    .src('src/html/index.html') // Обрабатываем только index.html
+    .pipe(
+      fileInclude({
+        prefix: '@@',
+        basepath: '@file', // Путь относительно текущего HTML-файла
+      })
+    )
     .pipe(htmlmin({ collapseWhitespace: true, removeComments: true })) // Минификация
-    .pipe(gulp.dest('dist')) // Сохраняем в dist
+    .pipe(gulp.dest('dist')) // Сохраняем только объединённый index.html в dist/
     .pipe(browserSync.stream()); // Обновляем браузер
 };
 
 // Задача для слежения за файлами и выполнения соответствующих задач
 export const watchFiles = () => {
   watch('src/sass/**/*.+(sass|scss)', styles); // Наблюдение за стилями
-  watch('src/html/**/*.html', html); // Наблюдение за HTML
+  watch('src/html/**/*.html', html); // Наблюдение за index.html и включаемыми файлами
   watch('dist/**/*').on('change', browserSync.reload); // Перезагрузка браузера при изменениях в dist
 };
 
