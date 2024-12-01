@@ -1,13 +1,14 @@
 import gulp from 'gulp';
-import * as sass from 'sass'; // Используем новый синтаксис для импорта
-import gulpSass from 'gulp-sass'; // Импортируем gulp-sass
+import * as sass from 'sass';
+import gulpSass from 'gulp-sass';
 import cleanCSS from 'gulp-clean-css';
 import autoprefixer from 'gulp-autoprefixer';
 import rename from 'gulp-rename';
 import htmlmin from 'gulp-htmlmin';
-import fileInclude from 'gulp-file-include'; // Для @@include
-import browserSync from 'browser-sync'; // Для автообновления браузера
-import { series, parallel, watch } from 'gulp'; // Для создания комплексных задач
+import fileInclude from 'gulp-file-include';
+import browserSync from 'browser-sync';
+import { series, parallel, watch } from 'gulp';
+import terser from 'gulp-terser'; // Для минификации JS
 
 // Инициализируем gulp-sass с компилятором sass
 const sassCompiler = gulpSass(sass);
@@ -15,31 +16,31 @@ const sassCompiler = gulpSass(sass);
 // Задача для компиляции SASS
 export const styles = () => {
   return gulp
-    .src('src/sass/**/*.+(sass|scss)') // Путь к вашим SASS/SCSS-файлам
-    .pipe(sassCompiler().on('error', sassCompiler.logError)) // Компиляция SASS
-    .pipe(autoprefixer()) // Добавление вендорных префиксов
-    .pipe(cleanCSS({ compatibility: 'ie8' })) // Минификация CSS
-    .pipe(rename({ suffix: '.min' })) // Переименуем в style.min.css
-    .pipe(gulp.dest('dist/css')) // Сохраним в папку dist/css
-    .pipe(browserSync.stream()); // Обновляем браузер
+    .src('src/sass/**/*.+(sass|scss)')
+    .pipe(sassCompiler().on('error', sassCompiler.logError))
+    .pipe(autoprefixer())
+    .pipe(cleanCSS({ compatibility: 'ie8' }))
+    .pipe(rename({ suffix: '.min' }))
+    .pipe(gulp.dest('dist/css'))
+    .pipe(browserSync.stream());
 };
 
-// Задача для обработки только index.html с поддержкой @@include и минификацией
+// Задача для обработки HTML
 export const html = () => {
   return gulp
-    .src('src/html/index.html') // Обрабатываем только index.html
+    .src('src/html/index.html')
     .pipe(
       fileInclude({
         prefix: '@@',
-        basepath: '@file', // Путь относительно текущего HTML-файла
+        basepath: '@file',
       })
     )
-    .pipe(htmlmin({ collapseWhitespace: true, removeComments: true })) // Минификация
-    .pipe(gulp.dest('dist')) // Сохраняем только объединённый index.html в dist/
-    .pipe(browserSync.stream()); // Обновляем браузер
+    .pipe(htmlmin({ collapseWhitespace: true, removeComments: true }))
+    .pipe(gulp.dest('dist'))
+    .pipe(browserSync.stream());
 };
 
-// 
+// Задача для обработки изображений
 export const images = () => {
   return gulp.src('src/img/**/*').pipe(gulp.dest('dist/img'));
 };
@@ -59,28 +60,39 @@ export const audio = () => {
   return gulp.src('src/audio/**/*').pipe(gulp.dest('dist/audio'));
 };
 
-// Задача для слежения за файлами и выполнения соответствующих задач
-export const watchFiles = () => {
-  watch('src/sass/**/*.+(sass|scss)', styles); // Наблюдение за стилями
-  watch('src/html/**/*.html', html); // Наблюдение за index.html и включаемыми файлами
-  watch('src/img/**/*', images); // Наблюдение за изображениями
-  watch('src/icons/**/*', icons); // Наблюдение за иконками
-  watch('src/fonts/**/*', fonts); // Наблюдение за шрифтами
-  watch('src/audio/**/*', audio); // Наблюдение за аудио
-  watch('dist/**/*').on('change', browserSync.reload); // Перезагрузка браузера при изменениях в dist
+// Задача для минификации JavaScript
+export const scripts = () => {
+  return gulp
+    .src('src/js/**/*.js') // Обрабатываем все файлы в src/js
+    .pipe(terser()) // Минификация JS
+    .pipe(rename({ suffix: '.min' })) // Добавляем суффикс .min
+    .pipe(gulp.dest('dist/js')) // Сохраняем в dist/js
+    .pipe(browserSync.stream()); // Обновляем браузер
 };
 
-// Задача для запуска локального сервера и автообновления браузера
+// Задача для слежения за файлами
+export const watchFiles = () => {
+  watch('src/sass/**/*.+(sass|scss)', styles);
+  watch('src/html/**/*.html', html);
+  watch('src/img/**/*', images);
+  watch('src/icons/**/*', icons);
+  watch('src/fonts/**/*', fonts);
+  watch('src/audio/**/*', audio);
+  watch('src/js/**/*.js', scripts); // Наблюдение за JavaScript
+  watch('dist/**/*').on('change', browserSync.reload);
+};
+
+// Задача для запуска локального сервера
 export const server = () => {
   browserSync.init({
     server: {
-      baseDir: 'dist', // Указываем корневую папку
+      baseDir: 'dist',
     },
   });
 };
 
-// Задача по умолчанию: запускаем все задачи одной командой
+// Задача по умолчанию
 export default series(
-  parallel(styles, html, images, icons, fonts, audio),
+  parallel(styles, html, images, icons, fonts, audio, scripts), // Добавили scripts
   parallel(server, watchFiles)
 );
