@@ -25,6 +25,14 @@ export const styles = () => {
     .pipe(browserSync.stream());
 };
 
+// Задача для копирования CSS без изменений
+export const copyCSS = () => {
+  return gulp
+    .src('src/css/**/*.css') // Любые CSS-файлы в src/css
+    .pipe(gulp.dest('dist/css')) // Копируем без изменений в dist/css
+    .pipe(browserSync.stream()); // Обновляем браузер
+};
+
 // Задача для обработки HTML
 export const html = () => {
   return gulp
@@ -73,12 +81,13 @@ export const scripts = () => {
 // Задача для слежения за файлами
 export const watchFiles = () => {
   watch('src/sass/**/*.+(sass|scss)', styles);
+  watch('src/css/**/*.css', copyCSS); // Следим за изменениями в CSS
   watch('src/html/**/*.html', html);
   watch('src/img/**/*', images);
   watch('src/icons/**/*', icons);
   watch('src/fonts/**/*', fonts);
   watch('src/audio/**/*', audio);
-  watch('src/js/**/*.js', scripts); // Наблюдение за JavaScript
+  watch('src/js/**/*.js', scripts);
   watch('dist/**/*').on('change', browserSync.reload);
 };
 
@@ -93,6 +102,6 @@ export const server = () => {
 
 // Задача по умолчанию
 export default series(
-  parallel(styles, html, images, icons, fonts, audio, scripts), // Добавили scripts
+  parallel(styles, copyCSS, html, images, icons, fonts, audio, scripts), // Добавили copyCSS
   parallel(server, watchFiles)
 );
