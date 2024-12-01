@@ -39,7 +39,7 @@ export const html = () => {
     .pipe(browserSync.stream()); // Обновляем браузер
 };
 
-// Задача для копирования изображений
+// 
 export const images = () => {
   return gulp.src('src/img/**/*').pipe(gulp.dest('dist/img'));
 };
