@@ -1,0 +1,13 @@
+@use 'variables'
+@use 'mixins'
+
+.hero
+     @include mixins.universalCont ()
+     width: 100%
+     height: 80vh
+     background-color: variables.$color
+
+h1
+     grid-column: 2/5
+     text-align: center
+     font-size: 10rem
