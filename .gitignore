@@ -1,12 +1,5 @@
-<<<<<<< HEAD
 # Игнорировать папку node_modules
 node_modules/
 
 # Игнорировать папку dist
 dist/
-=======
-# не отслеживать
-node_modules/
-
-dist/
->>>>>>> 6bb6c9421dc90a8b1628894a03d676bde2916899
