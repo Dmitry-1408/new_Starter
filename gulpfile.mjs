@@ -45,22 +45,30 @@ export const styles = () => {
     .pipe(browserSync.stream());
 };
 
-// Остальные задачи без изменений...
-
-// Задача для обработки HTML
-export const html = () => {
-  return gulp
-    .src('src/html/index.html')
-    .pipe(
-      fileInclude({
-        prefix: '@@',
-        basepath: '@file',
-      })
-    )
-    .pipe(htmlmin({ collapseWhitespace: true, removeComments: true }))
-    .pipe(gulp.dest('dist'))
-    .pipe(browserSync.stream());
+// Универсальная функция для минификации и копирования HTML
+// Не забывай писать новую переменную в задачу по умолчанию
+// Не забывай писать отслеживание всех HTML файлов в watchFiles
+export const processHtml = (fileName) => {
+  return () => {
+    return gulp
+      .src(`src/html/${fileName}`)
+      .pipe(
+        fileInclude({
+          prefix: '@@',
+          basepath: '@file',
+        })
+      )
+      .pipe(htmlmin({ collapseWhitespace: true, removeComments: true }))
+      .pipe(gulp.dest('dist'))
+      .pipe(browserSync.stream());
+  };
 };
+
+// копирование index.html
+export const html = processHtml('index.html');
+
+// копирование blog.html
+export const blog = processHtml('blog.html');
 
 // Задача для копирования иконок
 export const icons = () => {
@@ -74,7 +82,7 @@ export const fonts = () => {
 
 // Задача для копирования аудио
 export const audio = () => {
-  return gulp.src('src/audio/**/*').pipe(gulp.dest('dist/audio'));
+  return gulp.src('src/audio/**/*', { encoding: false }).pipe(gulp.dest('dist/audio'));
 };
 
 // Задача для минификации JavaScript
@@ -87,10 +95,9 @@ export const scripts = () => {
     .pipe(browserSync.stream());
 };
 
-
 // Задача для копирования изображений
 export const images = () => {
-  return gulp.src('src/img/**/*', { encoding: false  }) // Копируем только новые или измененные файлы
+  return gulp.src('src/img/**/*', { encoding: false }) // Копируем только новые или измененные файлы
     .pipe(gulp.dest('dist/img')); // Копируем без изменений
 };
 
@@ -98,7 +105,7 @@ export const images = () => {
 export const watchFiles = () => {
   watch('src/sass/**/*.+(sass|scss)', series(styles, compileMainSass)); // Компиляция основного и других файлов
   watch('src/css/**/*', copyCSS);
-  watch('src/html/**/*.html', html);
+  watch('src/html/**/*.html', series(html, blog)); // Отслеживание всех HTML файлов !!!
   watch('src/icons/**/*', icons);
   watch('src/fonts/**/*', fonts);
   watch('src/audio/**/*', audio);
@@ -118,6 +125,6 @@ export const server = () => {
 
 // Задача по умолчанию
 export default series(
-  parallel(styles, compileMainSass, copyCSS, html, icons, fonts, audio, scripts, images),
+  parallel(styles, compileMainSass, copyCSS, html, blog, icons, fonts, audio, scripts, images),
   parallel(server, watchFiles)
 );
